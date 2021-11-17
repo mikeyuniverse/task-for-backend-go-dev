@@ -3,8 +3,9 @@ package config
 import "github.com/spf13/viper"
 
 type Config struct {
-	Workers int // Количество воркеров
-	Ttl     int64
+	Workers    int // Количество воркеров
+	Ttl        int64
+	ServerPort string
 }
 
 func Init() (*Config, error) {
@@ -16,8 +17,9 @@ func Init() (*Config, error) {
 	}
 
 	cfg := &Config{
-		Workers: viper.GetInt("workers"),
-		Ttl:     viper.GetInt64("ttl"),
+		Workers:    viper.GetInt("workers"),
+		Ttl:        viper.GetInt64("ttl"),
+		ServerPort: viper.GetString("server.port"),
 	}
 
 	return cfg, nil

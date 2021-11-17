@@ -1,30 +1,36 @@
 package handlers
 
 import (
+	"backend-task/internal/models"
 	"backend-task/internal/repository"
 	"backend-task/pgk/logger"
+	"time"
 )
 
-// import (
-// 	"backend-task/internal/models"
-// 	"backend-task/internal/repository"
-// 	"backend-task/pgk/logger"
-// )
-
 type Handlers struct {
-	queue *Queue
+	Repo *repository.Repository
 }
 
-func New(repo *repository.Repository, ttl int64, workersNum int, logger *logger.Logger) *Handlers {
-	// 	// Здесь надо запустить воркеры, создать каналы
-	// 	forStart := make(chan models.TaskCalculateProgressionInput, workersNum)
-
-	// 	for i := 0; i < workersNum; i++ {
-	// 		go countArithmeticProgression(forStart)
-	// 	}
-	return &Handlers{queue: newQueue(ttl)}
+func New(repo *repository.Repository, workersNum int, logger *logger.Logger) *Handlers {
+	return &Handlers{Repo: repo}
 }
 
-// func (h *Handlers) AddTask() {}
+func (h *Handlers) AddTask(task models.TaskAddInput) error {
+	newTask := models.TaskResultOutput{
+		Status:         "inQueue",
+		N:              task.N,
+		D:              task.D,
+		N1:             task.N1,
+		I:              task.I,
+		TTL:            int64(task.TTL),
+		NowIter:        0,
+		CreateTaskTime: time.Now().Unix(),
+	}
+	return h.Repo.AddTaskToQueue(newTask)
+}
 
-// func (h *Handlers) Task() {}
+func (h *Handlers) Task() []models.TaskResultOutput {
+	return h.Repo.GetAllCurrentTasks()
+}
+
+// В этом пакете должна реализовываться логика расчета арифметической прогрессии

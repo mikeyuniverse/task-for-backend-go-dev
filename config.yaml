@@ -1,2 +1,5 @@
 workers: 5
 ttl: 20
+
+server:
+  port: 8080

@@ -21,7 +21,7 @@ func main() {
 		logger.Error(err.Error())
 	}
 
-	repo := repository.New(cfg.Ttl, logger)
+	repo := repository.New(logger)
 	handler := handlers.New(repo, cfg.Workers, logger)
 	server := server.New(cfg.ServerPort, handler)
 

@@ -7,12 +7,11 @@ import (
 )
 
 type Repository struct {
-	ttl   int64
 	queue *queue.Queue
 }
 
-func New(ttl int64, logger *logger.Logger) *Repository {
-	return &Repository{ttl: ttl, queue: queue.NewQueue(ttl)}
+func New(logger *logger.Logger) *Repository {
+	return &Repository{queue: queue.NewQueue()}
 }
 
 func (r *Repository) AddTaskToQueue(task models.TaskResultOutput) error {

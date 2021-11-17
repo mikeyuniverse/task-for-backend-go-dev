@@ -4,6 +4,7 @@ import (
 	"backend-task/internal/models"
 	"backend-task/internal/repository"
 	"backend-task/pgk/logger"
+	"time"
 )
 
 type Handlers struct {
@@ -15,17 +16,21 @@ func New(repo *repository.Repository, workersNum int, logger *logger.Logger) *Ha
 }
 
 func (h *Handlers) AddTask(task models.TaskAddInput) error {
-	// Вызвать метод AddTask у репозитория
-	return h.Repo.AddTask(task)
+	newTask := models.TaskResultOutput{
+		Status:         "inQueue",
+		N:              task.N,
+		D:              task.D,
+		N1:             task.N1,
+		I:              task.I,
+		TTL:            task.TTL,
+		NowIter:        0,
+		CreateTaskTime: time.Now(),
+	}
+	return h.Repo.AddTaskToQueue(newTask)
 }
 
-func (h *Handlers) Task() ([]models.TaskResultOutput, error) {
-	// Вызвать метод Tasks у репозитория
-	tasks, err := h.Repo.Tasks()
-	if err != nil {
-		return []models.TaskResultOutput{}, err
-	}
-	return tasks, nil
+func (h *Handlers) Task() []models.TaskResultOutput {
+	return h.Repo.GetAllCurrentTasks()
 }
 
 // В этом пакете должна реализовываться логика расчета арифметической прогрессии

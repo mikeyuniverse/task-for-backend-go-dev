@@ -18,7 +18,7 @@ type TaskResultOutput struct {
 	N1             float32   // Start value
 	I              int       // interval in seconds
 	TTL            int       // time to life for result
-	nowIter        int       // current iteration
+	NowIter        int       // current iteration
 	CreateTaskTime time.Time // time where task added
 	StartTaskTime  time.Time // time where task started
 	DoneTaskTime   time.Time // time where task completed

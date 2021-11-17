@@ -1,12 +1,13 @@
 package repository
 
 import (
-	"backend-task/pgk/config"
 	"backend-task/pgk/logger"
 )
 
-type Repository struct{}
+type Repository struct {
+	ttl int64
+}
 
-func New(config *config.Config, logger *logger.Logger) *Repository {
-	return &Repository{}
+func New(ttl int64, logger *logger.Logger) *Repository {
+	return &Repository{ttl: ttl}
 }

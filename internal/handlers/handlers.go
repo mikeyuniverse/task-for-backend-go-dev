@@ -22,9 +22,9 @@ func (h *Handlers) AddTask(task models.TaskAddInput) error {
 		D:              task.D,
 		N1:             task.N1,
 		I:              task.I,
-		TTL:            task.TTL,
+		TTL:            int64(task.TTL),
 		NowIter:        0,
-		CreateTaskTime: time.Now(),
+		CreateTaskTime: time.Now().Unix(),
 	}
 	return h.Repo.AddTaskToQueue(newTask)
 }

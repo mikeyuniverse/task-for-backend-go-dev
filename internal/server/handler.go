@@ -28,10 +28,6 @@ func (h *serverHandler) AddTask(c *gin.Context) {
 }
 
 func (h *serverHandler) Tasks(c *gin.Context) {
-	tasks, err := h.handler.Task()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, map[string]string{"status": "error"})
-		return
-	}
+	tasks := h.handler.Task()
 	c.JSON(http.StatusOK, tasks)
 }

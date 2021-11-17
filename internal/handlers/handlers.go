@@ -16,10 +16,16 @@ func New(repo *repository.Repository, workersNum int, logger *logger.Logger) *Ha
 
 func (h *Handlers) AddTask(task models.TaskAddInput) error {
 	// Вызвать метод AddTask у репозитория
-	return nil
+	return h.Repo.AddTask(task)
 }
 
 func (h *Handlers) Task() ([]models.TaskResultOutput, error) {
-	// Вызвать метод AddTask у репозитория
-	return []models.TaskResultOutput{}, nil
+	// Вызвать метод Tasks у репозитория
+	tasks, err := h.Repo.Tasks()
+	if err != nil {
+		return []models.TaskResultOutput{}, err
+	}
+	return tasks, nil
 }
+
+// В этом пакете должна реализовываться логика расчета арифметической прогрессии

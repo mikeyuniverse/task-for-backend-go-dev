@@ -7,7 +7,6 @@ import (
 	"backend-task/pgk/config"
 	"backend-task/pgk/logger"
 	"context"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -22,13 +21,13 @@ func main() {
 		logger.Error(err.Error())
 	}
 
-	repo := repository.New(cfg, logger)
-	handler := handlers.New(repo, cfg.Ttl, logger)
-	server := server.New(repo, handler)
+	repo := repository.New(cfg.Ttl, logger)
+	handler := handlers.New(repo, cfg.Workers, logger)
+	server := server.New(cfg.ServerPort, handler)
 
 	go func() {
 		if err := server.Run(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("listen: %s\n", err)
+			logger.Fatal(err.Error())
 		}
 	}()
 
@@ -43,7 +42,7 @@ func main() {
 	}()
 
 	if err := server.Stop(ctx); err != nil {
-		log.Fatalf("Server Shutdown Failed:%+v", err)
+		logger.Fatal(err.Error())
 	}
-	log.Print("Server Exited Properly")
+	logger.Info("Server Exited Properly")
 }

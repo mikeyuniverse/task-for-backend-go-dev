@@ -11,17 +11,19 @@ type Handlers struct {
 	Repo       *repository.Repository
 	workersNum int
 	logger     *logger.Logger
-	chNewTask  chan models.TaskResultOutput // Channel for receive new task
-	chDoneTask chan models.TaskResultOutput // Channel for receive completed task
+	chNewTask  *chan models.TaskResultOutput // Channel for receive new task
+	chDoneTask *chan models.TaskResultOutput // Channel for receive completed task
 }
 
 func New(repo *repository.Repository, workersNum int, logger *logger.Logger) *Handlers {
+	newTaskChan := make(chan models.TaskResultOutput, workersNum)
+	doneTaskChan := make(chan models.TaskResultOutput, workersNum)
 	h := &Handlers{
 		Repo:       repo,
 		workersNum: workersNum,
 		logger:     logger,
-		chNewTask:  make(chan models.TaskResultOutput, workersNum),
-		chDoneTask: make(chan models.TaskResultOutput, workersNum),
+		chNewTask:  &newTaskChan,
+		chDoneTask: &doneTaskChan,
 	}
 
 	h.workersInit(workersNum) // Create workers
@@ -32,14 +34,13 @@ func New(repo *repository.Repository, workersNum int, logger *logger.Logger) *Ha
 }
 
 func (h *Handlers) AddTask(task models.TaskAddInput) error {
-	h.logger.Info("AddTask")
 	newTask := models.TaskResultOutput{
 		Status:         "inQueue",
 		N:              task.N,
 		D:              task.D,
 		N1:             task.N1,
 		I:              task.I,
-		TTL:            int64(task.TTL),
+		TTL:            time.Now().Unix() + int64(task.TTL),
 		NowIter:        0,
 		CreateTaskTime: time.Now().Unix(),
 	}

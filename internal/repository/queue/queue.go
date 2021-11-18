@@ -6,33 +6,61 @@ import (
 	"time"
 )
 
-// В этом пакете должна происходить цикличная проверка TTL элементов очереди
-// TODO Сделать метод получения первого элемента из очереди
-// TODO Сделать метод обновления номеров в очереди
-// TODO Сделать метод обновления данных в задаче в очереди
-
 type Queue struct {
 	elems []models.TaskResultOutput
 	mutex *sync.Mutex
 }
 
-func NewQueue() *Queue {
-	queue := &Queue{elems: make([]models.TaskResultOutput, 0)}
+func New() *Queue {
+	queue := &Queue{elems: make([]models.TaskResultOutput, 0), mutex: &sync.Mutex{}}
 	go queue.runTTLchecker()
 	return queue
 }
 
 func (q *Queue) AddTask(task models.TaskResultOutput) error {
 	q.mutex.Lock()
+	task.QueueNum = len(q.elems)
 	q.elems = append(q.elems, task)
-	q.mutex.Unlock()
+	defer q.mutex.Unlock()
 	return nil
+}
+
+func (q *Queue) GetTaskNotInWork() (models.TaskResultOutput, bool) {
+	// Receive first task in queue
+	// Returned task and bool (true - task exist)
+	for _, task := range q.elems {
+		if task.Status == "inQueue" {
+			return task, true
+		}
+	}
+	return models.TaskResultOutput{}, false
 }
 
 func (q *Queue) GetAllTasks() []models.TaskResultOutput {
 	q.mutex.Lock()
 	defer q.mutex.Unlock()
 	return q.elems
+}
+
+func (q *Queue) ChangeTaskStatus(task models.TaskResultOutput, newStatus string) {
+	q.mutex.Lock()
+	defer q.mutex.Unlock()
+	q.elems[task.QueueNum].Status = newStatus
+	q.elems[task.QueueNum].StartTaskTime = time.Now().Unix()
+}
+
+func (q *Queue) DoneTask(task models.TaskResultOutput) {
+	q.mutex.Lock()
+	defer q.mutex.Unlock()
+	q.elems[task.QueueNum].DoneTaskTime = time.Now().Unix()
+	q.elems[task.QueueNum].Status = "Done"
+}
+
+func (q *Queue) IncIter(task models.TaskResultOutput) {
+	// Increment value of iteration counter
+	q.mutex.Lock()
+	defer q.mutex.Unlock()
+	q.elems[task.QueueNum].NowIter = q.elems[task.QueueNum].NowIter + 1
 }
 
 func (q *Queue) runTTLchecker() {
@@ -44,8 +72,10 @@ func (q *Queue) runTTLchecker() {
 
 func (q *Queue) checkTTL() {
 	for index, elem := range q.elems {
-		if elem.TTL >= time.Now().Unix() {
-			q.deleteElementFromQueue(index)
+		if time.Now().Unix() >= elem.TTL {
+			if elem.Status != "inProgress" {
+				q.deleteElementFromQueue(index)
+			}
 		}
 	}
 }

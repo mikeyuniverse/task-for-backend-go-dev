@@ -1,25 +1,25 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"flag"
+	"fmt"
+)
 
 type Config struct {
-	Workers    int // Количество воркеров
-	Ttl        int64
-	ServerPort string
+	Workers int // Количество воркеров
+
 }
 
 func Init() (*Config, error) {
-	viper.SetConfigName("config") // name of config file (without extension)
-	viper.SetConfigType("yaml")   // REQUIRED if the config file does not have the extension in the name
-	err := viper.ReadInConfig()
-	if err != nil {
-		return &Config{}, err
-	}
+
+	workers := flag.Int("workers", 5, "an int")
+
+	flag.Parse()
+
+	fmt.Println(*workers)
 
 	cfg := &Config{
-		Workers:    viper.GetInt("workers"),
-		Ttl:        viper.GetInt64("ttl"),
-		ServerPort: viper.GetString("server.port"),
+		Workers: *workers,
 	}
 
 	return cfg, nil

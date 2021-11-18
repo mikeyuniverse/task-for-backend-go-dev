@@ -3,6 +3,7 @@ package main
 import (
 	"backend-task/internal/handlers"
 	"backend-task/internal/repository"
+	"backend-task/internal/repository/queue"
 	"backend-task/internal/server"
 	"backend-task/pgk/config"
 	"backend-task/pgk/logger"
@@ -21,9 +22,10 @@ func main() {
 		logger.Error(err.Error())
 	}
 
-	repo := repository.New(logger)
+	queue := queue.New()
+	repo := repository.New(logger, queue)
 	handler := handlers.New(repo, cfg.Workers, logger)
-	server := server.New(cfg.ServerPort, handler)
+	server := server.New(handler)
 
 	go func() {
 		if err := server.Run(); err != nil && err != http.ErrServerClosed {

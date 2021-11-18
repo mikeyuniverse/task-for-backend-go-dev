@@ -25,7 +25,7 @@ func main() {
 	queue := queue.New()
 	repo := repository.New(logger, queue)
 	handler := handlers.New(repo, cfg.Workers, logger)
-	server := server.New(cfg.ServerPort, handler)
+	server := server.New(handler)
 
 	go func() {
 		if err := server.Run(); err != nil && err != http.ErrServerClosed {

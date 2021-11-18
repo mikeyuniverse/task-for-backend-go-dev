@@ -10,16 +10,32 @@ type Repository struct {
 	queue *queue.Queue
 }
 
-func New(logger *logger.Logger) *Repository {
-	return &Repository{queue: queue.NewQueue()}
+func New(logger *logger.Logger, queue *queue.Queue) *Repository {
+	return &Repository{queue: queue}
 }
 
 func (r *Repository) AddTaskToQueue(task models.TaskResultOutput) error {
-	// Добавляет задачу в очередь
 	return r.queue.AddTask(task)
 }
 
 func (r *Repository) GetAllCurrentTasks() []models.TaskResultOutput {
 	// Получает всю текущую очередь, в отсортированном порядке по времени поступления задачи на обработку
+	// Get all tasks in queue with sorted on created time of task
 	return r.queue.GetAllTasks()
+}
+
+func (r *Repository) GetTaskNotInWork() (models.TaskResultOutput, bool) {
+	return r.queue.GetTaskNotInWork()
+}
+
+func (r *Repository) ChangeTaskStatus(task models.TaskResultOutput, newStatus string) {
+	r.queue.ChangeTaskStatus(task, newStatus)
+}
+
+func (r *Repository) IncrementIterationNum(task models.TaskResultOutput) {
+	r.queue.IncIter(task)
+}
+
+func (r *Repository) DoneTask(task models.TaskResultOutput) {
+	r.queue.DoneTask(task)
 }

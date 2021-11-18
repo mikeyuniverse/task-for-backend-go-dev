@@ -37,8 +37,6 @@ func (q *Queue) GetTaskNotInWork() (models.TaskResultOutput, bool) {
 }
 
 func (q *Queue) GetAllTasks() []models.TaskResultOutput {
-	q.mutex.Lock()
-	defer q.mutex.Unlock()
 	return q.elems
 }
 

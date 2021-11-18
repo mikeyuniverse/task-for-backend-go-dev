@@ -12,16 +12,16 @@ type Queue struct {
 }
 
 func New() *Queue {
-	queue := &Queue{elems: make([]models.TaskResultOutput, 0)}
+	queue := &Queue{elems: make([]models.TaskResultOutput, 0), mutex: &sync.Mutex{}}
 	go queue.runTTLchecker()
 	return queue
 }
 
 func (q *Queue) AddTask(task models.TaskResultOutput) error {
 	q.mutex.Lock()
+	task.QueueNum = len(q.elems)
 	q.elems = append(q.elems, task)
-	q.recalcQueueNum()
-	q.mutex.Unlock()
+	defer q.mutex.Unlock()
 	return nil
 }
 
@@ -37,27 +37,30 @@ func (q *Queue) GetTaskNotInWork() (models.TaskResultOutput, bool) {
 }
 
 func (q *Queue) GetAllTasks() []models.TaskResultOutput {
+	q.mutex.Lock()
+	defer q.mutex.Unlock()
 	return q.elems
 }
 
 func (q *Queue) ChangeTaskStatus(task models.TaskResultOutput, newStatus string) {
 	q.mutex.Lock()
 	defer q.mutex.Unlock()
-	q.elems[task.QueueNum-1].Status = newStatus
-	q.elems[task.QueueNum-1].StartTaskTime = time.Now().Unix()
+	q.elems[task.QueueNum].Status = newStatus
+	q.elems[task.QueueNum].StartTaskTime = time.Now().Unix()
 }
 
 func (q *Queue) DoneTask(task models.TaskResultOutput) {
 	q.mutex.Lock()
 	defer q.mutex.Unlock()
-	q.elems[task.QueueNum-1].DoneTaskTime = time.Now().Unix()
-	q.elems[task.QueueNum-1].Status = "Done"
+	q.elems[task.QueueNum].DoneTaskTime = time.Now().Unix()
+	q.elems[task.QueueNum].Status = "Done"
 }
 
 func (q *Queue) IncIter(task models.TaskResultOutput) {
+	// Increment value of iteration counter
 	q.mutex.Lock()
 	defer q.mutex.Unlock()
-	q.elems[task.QueueNum-1].NowIter = q.elems[task.QueueNum-1].NowIter + 1
+	q.elems[task.QueueNum].NowIter = q.elems[task.QueueNum].NowIter + 1
 }
 
 func (q *Queue) runTTLchecker() {
@@ -69,7 +72,7 @@ func (q *Queue) runTTLchecker() {
 
 func (q *Queue) checkTTL() {
 	for index, elem := range q.elems {
-		if elem.TTL >= time.Now().Unix() {
+		if time.Now().Unix() >= elem.TTL {
 			if elem.Status != "inProgress" {
 				q.deleteElementFromQueue(index)
 			}
@@ -83,18 +86,5 @@ func (q *Queue) deleteElementFromQueue(index int) {
 	rightSide := q.elems[index+1:]
 	mergedList := append(leftSide, rightSide...)
 	q.elems = mergedList
-	q.recalcQueueNum()
 	q.mutex.Unlock()
-}
-
-func (q *Queue) recalcQueueNum() {
-	// Recalculates the item numbers in the queue
-	q.mutex.Lock()
-	defer q.mutex.Unlock()
-	for index, item := range q.elems {
-		if item.Status == "inProgress" {
-			continue
-		}
-		item.QueueNum = index + 1
-	}
 }

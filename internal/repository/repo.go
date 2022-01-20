@@ -19,7 +19,6 @@ func (r *Repository) AddTaskToQueue(task models.TaskResultOutput) error {
 }
 
 func (r *Repository) GetAllCurrentTasks() []models.TaskResultOutput {
-	// Получает всю текущую очередь, в отсортированном порядке по времени поступления задачи на обработку
 	// Get all tasks in queue with sorted on created time of task
 	return r.queue.GetAllTasks()
 }
